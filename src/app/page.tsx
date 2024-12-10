@@ -1,101 +1,120 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import { Copy, CheckCircle } from "lucide-react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [char, setChar] = useState("");
+  const [generatedToken, setGeneratedToken] = useState("");
+  const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const generateToken = () => {
+    if (!char) {
+      setError("Lütfen bir karakter girin");
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9]$/.test(char)) {
+      setError("Lütfen sadece tek bir harf veya rakam girin");
+      return;
+    }
+
+    setIsGenerating(true);
+
+    setTimeout(() => {
+      const upperChar = char.toUpperCase();
+      const length = 25;
+      const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let randomPart = "";
+
+      for (let i = 0; i < length - 1; i++) {
+        randomPart += characters.charAt(
+          Math.floor(Math.random() * characters.length),
+        );
+      }
+
+      setGeneratedToken(upperChar + randomPart);
+      setError("");
+      setIsGenerating(false);
+    }, 300);
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(generatedToken);
+    setCopied(true);
+
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
+  };
+
+  return (
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg border border-gray-200 p-8 w-full max-w-md">
+        <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+          Token Üretici
+        </h1>
+
+        <div className="space-y-4">
+          <div>
+            <input
+              type="text"
+              value={char}
+              onChange={(e) => setChar(e.target.value)}
+              maxLength={1}
+              className="w-full p-3 border border-gray-200 rounded-lg
+                focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none
+                transition-colors duration-200"
+              placeholder="Bir harf veya rakam girin"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </div>
+
+          <button
+            onClick={generateToken}
+            disabled={isGenerating}
+            className={`w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold
+              py-3 px-6 rounded-lg transition duration-200 relative
+              ${isGenerating ? "opacity-75 cursor-not-allowed" : ""}
+              active:scale-[0.98]`}
           >
-            Read our docs
-          </a>
+            {isGenerating ? "Oluşturuluyor..." : "Token Oluştur"}
+          </button>
+
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+          {generatedToken && (
+            <div className="mt-2">
+              <div className="relative">
+                <div
+                  className={`bg-gray-50 p-4 rounded-lg break-all pr-12 border border-gray-200
+                  ${copied ? "bg-green-50 border-green-200" : ""} transition-colors duration-200`}
+                >
+                  {generatedToken}
+                  <button
+                    onClick={copyToClipboard}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-2
+                      hover:bg-gray-200 rounded-lg transition-all duration-200
+                      ${copied ? "text-green-500" : "text-gray-600"}`}
+                    title={copied ? "Kopyalandı!" : "Kopyala"}
+                  >
+                    {copied ? (
+                      <CheckCircle className="w-5 h-5" />
+                    ) : (
+                      <Copy className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+                {copied && (
+                  <div className="absolute -right-2 -top-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                    Kopyalandı!
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </div>
+    </main>
   );
 }
